@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Empreendimento {
+  id          Int        @id @default(autoincrement())
+  nome        String
+  endereco    String?
+  cidade      String?
+  estado      String?
+  createdAt   DateTime   @default(now())
+
+  licencas    Licenca[]
+}
+
+model Licenca {
+  id               Int      @id @default(autoincrement())
+  numero           String
+  ano              Int?
+  tipo             String   // LP, LI, LO, etc
+  dataEmissao      DateTime?
+  dataValidade     DateTime?
+  alertaDias       Int      @default(180)
+  orgao            String?
+  atividade        String?
+  etapa            String?
+  status           String   // vigente, renovacao, finalizado
+
+  empreendimentoId Int
+  empreendimento   Empreendimento @relation(fields: [empreendimentoId], references: [id])
+
+  condicionantes   Condicionante[]
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Condicionante {
+  id          Int      @id @default(autoincrement())
+  nome        String?
+  numero      Int?
+  descricao   String
+  prazo       DateTime?
+  alertaDias  Int @default(180)
+  status      String   // cumprida, nao_cumprida
+
+  dataCumprimento  DateTime? 
+  cumpridaPor      Int?     
+
+  licencaId   Int
+  licenca     Licenca  @relation(fields: [licencaId], references: [id])
+
+  createdAt   DateTime @default(now())
+}
+
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  email     String   @unique
+  senha     String
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  roleId    Int
+  role      Role     @relation(fields: [roleId], references: [id])
+}
+
+model Role {
+  id        Int      @id @default(autoincrement())
+  nome      String   @unique
+  usuarios  Usuario[]
+}
+
+/* ENUMS */
+
+enum TipoLicenca {
+  LL
+  LI
+  PPV
+  LS
+}
+
+enum StatusLicenca {
+  Finalizado
+  Em_renovacao
+  Vigente
+}
+
+enum StatusCondicionante {
+  Cumprida
+  Nao_cumprida
+}
